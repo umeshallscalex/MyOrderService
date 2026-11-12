@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Employee Directory</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #182230;
+            background: #f4f7fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 48px 20px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .subtitle {
+            margin: 8px 0 28px;
+            color: #667085;
+        }
+
+        .panel {
+            padding: 24px;
+            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #e4e7ec;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgb(16 24 40 / 5%);
+        }
+
+        h2 {
+            margin: 0 0 18px;
+            font-size: 18px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #d0d5dd;
+        }
+
+        .tab-button {
+            min-height: 42px;
+            padding: 0 16px;
+            color: #475467;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            border-radius: 7px 7px 0 0;
+        }
+
+        .tab-button:hover {
+            color: #1d4ed8;
+            background: #eff6ff;
+        }
+
+        .tab-button[aria-selected="true"] {
+            color: #1d4ed8;
+            border-bottom-color: #2563eb;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .lookup-form {
+            grid-template-columns: minmax(180px, 1fr) auto;
+            max-width: 520px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            min-height: 42px;
+            padding: 9px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 7px;
+            font: inherit;
+        }
+
+        input:focus {
+            outline: 3px solid #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        button {
+            min-height: 42px;
+            padding: 0 18px;
+            color: #fff;
+            background: #2563eb;
+            border: 0;
+            border-radius: 7px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .remove-button {
+            min-height: 34px;
+            padding: 0 12px;
+            background: #b42318;
+            font-size: 14px;
+        }
+
+        .remove-button:hover {
+            background: #912018;
+        }
+
+        .modify-button {
+            min-height: 34px;
+            padding: 0 12px;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        th {
+            color: #475467;
+            background: #f9fafb;
+            font-size: 13px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        #message,
+        #department-message,
+        #lookup-message {
+            min-height: 20px;
+            margin: 14px 0 0;
+            color: #b42318;
+            font-size: 14px;
+        }
+
+        #message:empty,
+        #department-message:empty,
+        #lookup-message:empty {
+            display: none;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 28px 14px;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Employee Directory</h1>
+    <p class="subtitle">View and manage students, employees, and departments.</p>
+
+    <div class="tabs" role="tablist" aria-label="Directory sections">
+        <button id="employee-details-tab" class="tab-button" type="button" role="tab"
+                aria-selected="false" aria-controls="employee-details-panel" tabindex="-1">Employee details</button>
+        <button id="students-tab" class="tab-button" type="button" role="tab"
+                aria-selected="true" aria-controls="students-panel">Students</button>
+        <button id="employees-tab" class="tab-button" type="button" role="tab"
+                aria-selected="false" aria-controls="employees-panel" tabindex="-1">Employees</button>
+        <button id="departments-tab" class="tab-button" type="button" role="tab"
+                aria-selected="false" aria-controls="departments-panel" tabindex="-1">Departments</button>
+    </div>
+
+    <div id="students-panel" role="tabpanel" aria-labelledby="students-tab">
+        <section class="panel" aria-labelledby="student-form-heading">
+            <h2 id="student-form-heading">Add student</h2>
+            <form id="student-form">
+                <div>
+                    <label for="student-id">Student ID</label>
+                    <input id="student-id" name="studentId" type="number" min="1" step="1" required>
+                </div>
+                <div>
+                    <label for="student-name">Student name</label>
+                    <input id="student-name" name="studentName" type="text" maxlength="100" required>
+                </div>
+                <div>
+                    <label for="student-department-id">Department ID</label>
+                    <input id="student-department-id" name="departmentId" type="number" min="1" step="1" required>
+                </div>
+                <div>
+                    <button id="add-student-button" type="submit">Add student</button>
+                </div>
+            </form>
+            <p id="student-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="students-heading">
+            <h2 id="students-heading">Students</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Student ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Department ID</th>
+                    </tr>
+                    </thead>
+                    <tbody id="student-list">
+                    <tr><td colspan="3">Loading students...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="employees-panel" role="tabpanel" aria-labelledby="employees-tab" hidden>
+        <section class="panel" aria-labelledby="form-heading">
+            <h2 id="form-heading">Add employee</h2>
+            <form id="employee-form">
+                <div>
+                    <label for="emp-id">Employee ID</label>
+                    <input id="emp-id" name="empId" type="number" min="1" step="1" required>
+                </div>
+                <div>
+                    <label for="emp-name">Employee name</label>
+                    <input id="emp-name" name="empName" type="text" maxlength="100" required>
+                </div>
+                <div>
+                    <label for="emp-department-id">Department ID</label>
+                    <input id="emp-department-id" name="departmentID" type="number" min="1" step="1" required>
+                </div>
+                <div>
+                    <button id="add-button" type="submit">Add employee</button>
+                    <button id="cancel-button" class="remove-button" type="button" hidden>Cancel</button>
+                </div>
+            </form>
+            <p id="message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="employees-heading">
+            <h2 id="employees-heading">Employees</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Employee ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Department ID</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="employee-list">
+                    <tr><td colspan="4">Loading employees...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="departments-panel" role="tabpanel" aria-labelledby="departments-tab" hidden>
+        <section class="panel" aria-labelledby="department-form-heading">
+            <h2 id="department-form-heading">Add department</h2>
+            <form id="department-form">
+                <div>
+                    <label for="department-id">Department ID</label>
+                    <input id="department-id" name="departmentID" type="number" min="1" step="1" required>
+                </div>
+                <div>
+                    <label for="department-name">Department name</label>
+                    <input id="department-name" name="departmentName" type="text" maxlength="100" required>
+                </div>
+                <div>
+                    <button id="add-department-button" type="submit">Add department</button>
+                </div>
+            </form>
+            <p id="department-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="departments-heading">
+            <h2 id="departments-heading">Departments</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Department ID</th>
+                        <th scope="col">Name</th>
+                    </tr>
+                    </thead>
+                    <tbody id="department-list">
+                    <tr><td colspan="2">Select Departments to load.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="employee-details-panel" role="tabpanel" aria-labelledby="employee-details-tab" hidden>
+        <section class="panel" aria-labelledby="lookup-heading">
+            <h2 id="lookup-heading">Find employee, department, and students</h2>
+            <form id="lookup-form" class="lookup-form">
+                <div>
+                    <label for="lookup-emp-id">Employee ID</label>
+                    <input id="lookup-emp-id" name="empId" type="number" min="1" step="1" required>
+                </div>
+                <button id="lookup-button" type="submit">Fetch details</button>
+            </form>
+            <p id="lookup-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="lookup-results-heading">
+            <h2 id="lookup-results-heading">Matching records</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Employee ID</th>
+                        <th scope="col">Department ID</th>
+                        <th scope="col">Department name</th>
+                        <th scope="col">Student ID</th>
+                        <th scope="col">Student name</th>
+                    </tr>
+                    </thead>
+                    <tbody id="lookup-list">
+                    <tr><td colspan="5">Enter an employee ID to fetch details.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    const apiUrl = "/EmployeeService";
+    const departmentsUrl = `${apiUrl}/departments`;
+    const studentsUrl = `${apiUrl}/students`;
+    const studentTab = document.getElementById("students-tab");
+    const employeeList = document.getElementById("employee-list");
+    const form = document.getElementById("employee-form");
+    const addButton = document.getElementById("add-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const idInput = document.getElementById("emp-id");
+    const nameInput = document.getElementById("emp-name");
+    const employeeDepartmentIdInput = document.getElementById("emp-department-id");
+    const formHeading = document.getElementById("form-heading");
+    const message = document.getElementById("message");
+    const employeeTab = document.getElementById("employees-tab");
+    const departmentTab = document.getElementById("departments-tab");
+    const employeeDetailsTab = document.getElementById("employee-details-tab");
+    const studentsPanel = document.getElementById("students-panel");
+    const employeesPanel = document.getElementById("employees-panel");
+    const departmentsPanel = document.getElementById("departments-panel");
+    const employeeDetailsPanel = document.getElementById("employee-details-panel");
+    const departmentForm = document.getElementById("department-form");
+    const departmentList = document.getElementById("department-list");
+    const departmentMessage = document.getElementById("department-message");
+    const addDepartmentButton = document.getElementById("add-department-button");
+    const lookupForm = document.getElementById("lookup-form");
+    const lookupEmpIdInput = document.getElementById("lookup-emp-id");
+    const lookupButton = document.getElementById("lookup-button");
+    const lookupList = document.getElementById("lookup-list");
+    const lookupMessage = document.getElementById("lookup-message");
+    const studentForm = document.getElementById("student-form");
+    const studentList = document.getElementById("student-list");
+    const studentMessage = document.getElementById("student-message");
+    const addStudentButton = document.getElementById("add-student-button");
+    const tabs = [studentTab, employeeTab, departmentTab, employeeDetailsTab];
+    let editingEmployeeId = null;
+    let departmentsLoaded = false;
+
+    function stopEditing() {
+        editingEmployeeId = null;
+        form.reset();
+        idInput.readOnly = false;
+        formHeading.textContent = "Add employee";
+        addButton.textContent = "Add employee";
+        cancelButton.hidden = true;
+    }
+
+    function editEmployee(employee) {
+        editingEmployeeId = employee.empId;
+        idInput.value = employee.empId;
+        idInput.readOnly = true;
+        nameInput.value = employee.empName ?? "";
+        employeeDepartmentIdInput.value = employee.departmentID;
+        formHeading.textContent = "Modify employee";
+        addButton.textContent = "Save changes";
+        cancelButton.hidden = false;
+        message.textContent = "";
+        form.scrollIntoView({ behavior: "smooth", block: "center" });
+        nameInput.focus();
+    }
+
+    function renderEmployees(employees) {
+        employeeList.replaceChildren();
+
+        if (employees.length === 0) {
+            const row = employeeList.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = 4;
+            cell.textContent = "No employees found.";
+            return;
+        }
+
+        employees.forEach((employee) => {
+            const row = employeeList.insertRow();
+            row.insertCell().textContent = employee.empId;
+            row.insertCell().textContent = employee.empName ?? "";
+            row.insertCell().textContent = employee.departmentID;
+            const actionCell = row.insertCell();
+            const modifyButton = document.createElement("button");
+            modifyButton.type = "button";
+            modifyButton.className = "modify-button";
+            modifyButton.textContent = "Modify";
+            modifyButton.setAttribute("aria-label", `Modify ${employee.empName ?? "employee"} (ID ${employee.empId})`);
+            modifyButton.addEventListener("click", () => editEmployee(employee));
+            actionCell.append(modifyButton);
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-button";
+            removeButton.textContent = "Remove";
+            removeButton.setAttribute("aria-label", `Remove ${employee.empName ?? "employee"} (ID ${employee.empId})`);
+            removeButton.addEventListener("click", () => removeEmployee(employee.empId, removeButton));
+            actionCell.append(removeButton);
+        });
+    }
+
+    async function removeEmployee(empId, button) {
+        message.textContent = "";
+        button.disabled = true;
+
+        try {
+            const response = await fetch(`${apiUrl}/deleteEmpDetails/${encodeURIComponent(empId)}`, {
+                method: "DELETE"
+            });
+            if (!response.ok) {
+                throw new Error(`Could not remove employee (HTTP ${response.status}).`);
+            }
+
+            renderEmployees(await response.json());
+            message.style.color = "#067647";
+            message.textContent = "Employee removed successfully.";
+        } catch (error) {
+            message.style.color = "#b42318";
+            message.textContent = error.message;
+            button.disabled = false;
+        }
+    }
+
+    async function loadEmployees() {
+        const response = await fetch(`${apiUrl}/getEmpDetails`);
+        if (!response.ok) {
+            throw new Error(`Could not load employees (HTTP ${response.status}).`);
+        }
+        renderEmployees(await response.json());
+    }
+
+    function renderDepartments(departments) {
+        departmentList.replaceChildren();
+
+        if (departments.length === 0) {
+            const row = departmentList.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = 2;
+            cell.textContent = "No departments found.";
+            return;
+        }
+
+        departments.forEach((department) => {
+            const row = departmentList.insertRow();
+            row.insertCell().textContent = department.departmentID;
+            row.insertCell().textContent = department.departmentName ?? "";
+        });
+    }
+
+    async function loadDepartments() {
+        departmentMessage.textContent = "";
+        const response = await fetch(`${departmentsUrl}/all`);
+        if (!response.ok) {
+            throw new Error(`Could not load departments (HTTP ${response.status}).`);
+        }
+        renderDepartments(await response.json());
+        departmentsLoaded = true;
+    }
+
+    function renderStudents(students) {
+        studentList.replaceChildren();
+
+        if (students.length === 0) {
+            const row = studentList.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = 3;
+            cell.textContent = "No students found.";
+            return;
+        }
+
+        students.forEach((student) => {
+            const row = studentList.insertRow();
+            row.insertCell().textContent = student.studentId;
+            row.insertCell().textContent = student.studentName ?? "";
+            row.insertCell().textContent = student.departmentId;
+        });
+    }
+
+    async function loadStudents() {
+        const response = await fetch(`${studentsUrl}/all`);
+        if (!response.ok) {
+            throw new Error(`Could not load students (HTTP ${response.status}).`);
+        }
+        renderStudents(await response.json());
+    }
+
+    async function selectTab(selectedTab) {
+        tabs.forEach((tab) => {
+            const selected = tab === selectedTab;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+        });
+        studentsPanel.hidden = selectedTab !== studentTab;
+        employeesPanel.hidden = selectedTab !== employeeTab;
+        departmentsPanel.hidden = selectedTab !== departmentTab;
+        employeeDetailsPanel.hidden = selectedTab !== employeeDetailsTab;
+
+        if (selectedTab === studentTab && studentList.dataset.loaded !== "true") {
+            studentList.innerHTML = "<tr><td colspan=\"3\">Loading students...</td></tr>";
+            try {
+                await loadStudents();
+                studentList.dataset.loaded = "true";
+            } catch (error) {
+                studentList.innerHTML = "<tr><td colspan=\"3\">Could not load students.</td></tr>";
+                studentMessage.style.color = "#b42318";
+                studentMessage.textContent = error.message;
+            }
+        }
+
+        if (selectedTab === departmentTab && !departmentsLoaded) {
+            departmentList.innerHTML = "<tr><td colspan=\"2\">Loading departments...</td></tr>";
+            try {
+                await loadDepartments();
+            } catch (error) {
+                departmentList.innerHTML = "<tr><td colspan=\"2\">Could not load departments.</td></tr>";
+                departmentMessage.style.color = "#b42318";
+                departmentMessage.textContent = error.message;
+            }
+        }
+    }
+
+    studentTab.addEventListener("click", () => selectTab(studentTab));
+    employeeTab.addEventListener("click", () => selectTab(employeeTab));
+    departmentTab.addEventListener("click", () => selectTab(departmentTab));
+    employeeDetailsTab.addEventListener("click", () => selectTab(employeeDetailsTab));
+    tabs.forEach((tab, index) => {
+        tab.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                const direction = event.key === "ArrowRight" ? 1 : -1;
+                const nextIndex = (index + direction + tabs.length) % tabs.length;
+                const nextTab = tabs[nextIndex];
+                nextTab.focus();
+                selectTab(nextTab);
+            }
+        });
+    });
+
+    lookupForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        lookupMessage.textContent = "";
+        lookupButton.disabled = true;
+        lookupList.innerHTML = "<tr><td colspan=\"5\">Loading details...</td></tr>";
+
+        try {
+            const empId = lookupEmpIdInput.value;
+            const response = await fetch(
+                `${departmentsUrl}/detailsEmp/${encodeURIComponent(empId)}`);
+            if (!response.ok) {
+                throw new Error(`Could not fetch details (HTTP ${response.status}).`);
+            }
+
+            const records = await response.json();
+            lookupList.replaceChildren();
+            if (records.length === 0) {
+                lookupList.innerHTML = "<tr><td colspan=\"5\">No matching records found.</td></tr>";
+                lookupMessage.style.color = "#475467";
+                lookupMessage.textContent = `No department/student records found for employee ${empId}.`;
+                return;
+            }
+
+            records.forEach((record) => {
+                const row = lookupList.insertRow();
+                row.insertCell().textContent = record.empId;
+                row.insertCell().textContent = record.departmentId;
+                row.insertCell().textContent = record.departmentName ?? "";
+                row.insertCell().textContent = record.studentId;
+                row.insertCell().textContent = record.studentName ?? "";
+            });
+            lookupMessage.style.color = "#067647";
+            lookupMessage.textContent = `Found ${records.length} matching record(s) for employee ${empId}.`;
+        } catch (error) {
+            lookupList.innerHTML = "<tr><td colspan=\"5\">Could not load details.</td></tr>";
+            lookupMessage.style.color = "#b42318";
+            lookupMessage.textContent = error.message;
+        } finally {
+            lookupButton.disabled = false;
+        }
+    });
+
+    departmentForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        departmentMessage.textContent = "";
+        addDepartmentButton.disabled = true;
+
+        const formData = new FormData(departmentForm);
+        const department = {
+            departmentID: Number(formData.get("departmentID")),
+            departmentName: String(formData.get("departmentName")).trim()
+        };
+
+        try {
+            const response = await fetch(`${departmentsUrl}/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(department)
+            });
+            if (!response.ok) {
+                throw new Error(`Could not add department (HTTP ${response.status}).`);
+            }
+
+            const addedDepartment = await response.json();
+            departmentForm.reset();
+            departmentsLoaded = false;
+            departmentMessage.style.color = "#067647";
+            departmentMessage.textContent = `Department ${addedDepartment.departmentName} added successfully.`;
+            try {
+                await loadDepartments();
+            } catch (error) {
+                departmentMessage.style.color = "#b42318";
+                departmentMessage.textContent = `Department was added, but the list could not refresh: ${error.message}`;
+            }
+        } catch (error) {
+            departmentMessage.style.color = "#b42318";
+            departmentMessage.textContent = error.message;
+        } finally {
+            addDepartmentButton.disabled = false;
+        }
+    });
+
+    studentForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        studentMessage.textContent = "";
+        addStudentButton.disabled = true;
+
+        const formData = new FormData(studentForm);
+        const student = {
+            studentId: Number(formData.get("studentId")),
+            studentName: String(formData.get("studentName")).trim(),
+            departmentId: Number(formData.get("departmentId"))
+        };
+
+        try {
+            const response = await fetch(`${studentsUrl}/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(student)
+            });
+            if (!response.ok) {
+                throw new Error(`Could not add student (HTTP ${response.status}).`);
+            }
+
+            renderStudents(await response.json());
+            studentList.dataset.loaded = "true";
+            studentForm.reset();
+            studentMessage.style.color = "#067647";
+            studentMessage.textContent = "Student added successfully.";
+        } catch (error) {
+            studentMessage.style.color = "#b42318";
+            studentMessage.textContent = error.message;
+        } finally {
+            addStudentButton.disabled = false;
+        }
+    });
+
+    cancelButton.addEventListener("click", stopEditing);
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.textContent = "";
+        addButton.disabled = true;
+
+        const formData = new FormData(form);
+        const employee = {
+            empId: Number(formData.get("empId")),
+            empName: String(formData.get("empName")).trim(),
+            departmentID: Number(formData.get("departmentID"))
+        };
+        const isEditing = editingEmployeeId !== null;
+
+        try {
+            const response = await fetch(`${apiUrl}/${isEditing ? "updateEmpDetails" : "addEmpDetails"}`, {
+                method: isEditing ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(employee)
+            });
+            if (!response.ok) {
+                throw new Error(`Could not ${isEditing ? "modify" : "add"} employee (HTTP ${response.status}).`);
+            }
+
+            renderEmployees(await response.json());
+            stopEditing();
+            message.textContent = `Employee ${isEditing ? "modified" : "added"} successfully.`;
+            message.style.color = "#067647";
+        } catch (error) {
+            message.style.color = "#b42318";
+            message.textContent = error.message;
+        } finally {
+            addButton.disabled = false;
+        }
+    });
+
+    selectTab(studentTab);
+
+    loadEmployees().catch((error) => {
+        employeeList.replaceChildren();
+        const row = employeeList.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 4;
+        cell.textContent = "Could not load employees.";
+        message.style.color = "#b42318";
+        message.textContent = error.message;
+    });
+</script>
+</body>
+</html>
